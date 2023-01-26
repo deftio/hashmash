@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "bitwrench": "^1.2.16"
+  },
+  "name": "hashmash",
+  "version": "0.1.0",
+  "description": "Web tool to see different text stats and hashes",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/deftio/hashmash.git"
+  },
+  "keywords": [
+    "hash",
+    "sha256",
+    "crc",
+    "stats"
+  ],
+  "author": "manu chatterjee",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/deftio/hashmash/issues"
+  },
+  "homepage": "https://github.com/deftio/hashmash#readme"
+}

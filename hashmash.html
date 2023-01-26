@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="./js/bitwrench.min.js" ></script>
+</head>
+<body class="bw-def-page-setup bw-font-sans-serif">
+<script>
+var htmlData = {c: //for more on the format, see docs github.com/deftio/bitwrench
+ [
+   ["h1" ,{"class":"bw-h1"},"HashMash"  ],
+   "A utitlity for seeing text stats"
+   
+ ]};
+ 
+bw.DOMInsertElement("body",bw.html(htmlData),true);
+function myFunc(x){return x.innerHTML = (new Date()).toLocaleTimeString();} // button function
+
+
+bw.DOMInsertElement("head",bw.html(bw.htmlFavicon("\u266C","teal"))); //  insert a favicon on the top tab of the page, "X" for a single letter
+bw.DOMInsertElement("head",bw.html({t:"title",c:"HashMash"})); // insert a page title on the browser tab
+</script>
+</body>
+</html>
