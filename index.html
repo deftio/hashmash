@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hashmash</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>#</text></svg>">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea, .input-wrapper input {
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        textarea {
+            width: 70%;
+        }
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+        .input-wrapper input {
+            width: 10%;
+        }
+        .prefix-input {
+            width: 20%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            word-break: break-all;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .fixed-width {
+            width: 20%;
+        }
+        .stats-table {
+            margin-top: 20px;
+            width: 100%;
+            border: none;
+            table-layout: fixed;
+        }
+        .stats-table td {
+            padding: 5px;
+            border: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <h1>Hashmash</h1>
+    <div class="input-wrapper">
+        <textarea id="inputString" placeholder="Enter your string here..."></textarea>
+        <input type="text" id="salt" placeholder="Optional salt...">
+        <input type="text" id="prefix" class="prefix-input" value="Mi$0" placeholder="Prefix">
+    </div>
+
+    <div id="stats"></div>
+    <table id="hashesTable">
+        <thead>
+            <tr>
+                <th class="fixed-width">Hash Name</th>
+                <th class="fixed-width">Hex Hash Value</th>
+                <th class="fixed-width">Base64 Hash</th>
+                <th class="fixed-width">Numbers Only Hash</th>
+                <th class="fixed-width">Prefixed Hex Hash (<span id="prefixLabel">Mi$0</span>)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const inputString = document.getElementById('inputString');
+        const salt = document.getElementById('salt');
+        const prefix = document.getElementById('prefix');
+        const statsDiv = document.getElementById('stats');
+        const hashesTableBody = document.getElementById('hashesTable').querySelector('tbody');
+        const prefixLabel = document.getElementById('prefixLabel');
+
+        const updateStatsAndHashes = () => {
+            const str = inputString.value;
+            const saltedStr = str + (salt.value || '');
+            const prefixValue = prefix.value;
+
+            const stats = getStats(str);
+            const hashes = getHashes(saltedStr, prefixValue);
+
+            displayStats(stats);
+            displayHashes(hashes, prefixValue);
+            prefixLabel.textContent = prefixValue;
+        };
+
+        const getStats = (str) => {
+            return {
+                length: str.length,
+                wordCount: str.split(/\s+/).filter(word => word).length,
+                numbersCount: (str.match(/\d/g) || []).length,
+                upperCaseCount: (str.match(/[A-Z]/g) || []).length,
+                lowerCaseCount: (str.match(/[a-z]/g) || []).length,
+                symbolsCount: (str.match(/[!-/:-@[-`{-~]/g) || []).length,
+                spacesCount: (str.match(/[\s\t]/g) || []).length,
+                nonAsciiCount: (str.match(/[^\x00-\x7F]/g) || []).length,
+            };
+        };
+
+        const getHashes = (str, prefixValue) => {
+            const hashes = [
+                { name: "32-bit Checksum", value: toChecksum32(str) },
+                { name: "64-bit Checksum", value: toChecksum64(str) },
+                { name: "16-bit CRC", value: toCRC16(str) },
+                { name: "32-bit CRC", value: toCRC32(str) },
+                { name: "64-bit CRC", value: toCRC64(str) },
+                { name: "MD5", value: CryptoJS.MD5(str).toString() },
+                { name: "SHA1", value: CryptoJS.SHA1(str).toString() },
+                { name: "SHA224", value: CryptoJS.SHA224(str).toString() },
+                { name: "SHA256", value: CryptoJS.SHA256(str).toString() },
+                { name: "Hex ASCII", value: toHexASCII(str) }
+            ];
+            return hashes.map(hash => ({
+                ...hash,
+                base64: CryptoJS.enc.Base64.stringify(CryptoJS.enc.Hex.parse(hash.value)),
+                numbersOnly: hash.value.replace(/[^0-9]/g, ''),
+                prefixed: prefixValue + hash.value,
+            }));
+        };
+        const displayStats = (stats) => {
+                statsDiv.innerHTML = `
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Characters</th>
+                                <th>Words</th>
+                                <th>Numbers</th>
+                                <th>Uppercase Letters</th>
+                                <th>Lowercase Letters</th>
+                                <th>Symbols</th>
+                                <th>Spaces/Tabs</th>
+                                <th>Non-ASCII Characters</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${stats.length}</td>
+                                <td>${stats.wordCount}</td>
+                                <td>${stats.numbersCount}</td>
+                                <td>${stats.upperCaseCount}</td>
+                                <td>${stats.lowerCaseCount}</td>
+                                <td>${stats.symbolsCount}</td>
+                                <td>${stats.spacesCount}</td>
+                                <td>${stats.nonAsciiCount}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+            };
+
+        const displayHashes = (hashes, prefixValue) => {
+            hashesTableBody.innerHTML = hashes.map(hash => `
+                <tr>
+                    <td>${hash.name}</td>
+                    <td>${hash.value}</td>
+                    <td>${hash.base64}</td>
+                    <td>${hash.numbersOnly}</td>
+                    <td>${hash.prefixed}</td>
+                </tr>
+            `).join('');
+        };
+
+        const toHexASCII = (str) => {
+            return str.split('').map(char => char.charCodeAt(0).toString(16)).join('');
+        };
+
+        const toChecksum32 = (str) => {
+            let checksum = 0;
+            for (let i = 0; i < str.length; i++) {
+                checksum = (checksum + str.charCodeAt(i)) >>> 0;
+            }
+            return checksum.toString(16);
+        };
+
+        const toChecksum64 = (str) => {
+            let checksum = 0n;
+            for (let i = 0; i < str.length; i++) {
+                checksum = (checksum + BigInt(str.charCodeAt(i))) & 0xFFFFFFFFFFFFFFFFn;
+            }
+            return checksum.toString(16);
+        };
+
+        const toCRC16 = (str) => {
+            let crc = 0xFFFF;
+            for (let i = 0; i < str.length; i++) {
+                crc ^= str.charCodeAt(i) << 8;
+                for (let j = 0; j < 8; j++) {
+                    if (crc & 0x8000) {
+                        crc = (crc << 1) ^ 0x1021;
+                    } else {
+                        crc <<= 1;
+                    }
+                }
+                crc &= 0xFFFF;
+            }
+            return crc.toString(16);
+        };
+
+        const toCRC32 = (str) => {
+            let crc = 0xFFFFFFFF;
+            for (let i = 0; i < str.length; i++) {
+                crc ^= str.charCodeAt(i);
+                for (let j = 0; j < 8; j++) {
+                    if (crc & 1) {
+                        crc = (crc >>> 1) ^ 0xEDB88320;
+                    } else {
+                        crc >>>= 1;
+                    }
+                }
+            }
+            return (crc ^ 0xFFFFFFFF).toString(16);
+        };
+
+        const toCRC64 = (str) => {
+            let crc = 0xFFFFFFFFFFFFFFFFn;
+            for (let i = 0; i < str.length; i++) {
+                crc ^= BigInt(str.charCodeAt(i));
+                for (let j = 0; j < 8; j++) {
+                    if (crc & 1n) {
+                        crc = (crc >> 1n) ^ 0xC96C5795D7870F42n;
+                    } else {
+                        crc >>= 1n;
+                    }
+                }
+            }
+            return (crc ^ 0xFFFFFFFFFFFFFFFFn).toString(16);
+        };
+
+        inputString.addEventListener('input', updateStatsAndHashes);
+        salt.addEventListener('input', updateStatsAndHashes);
+        prefix.addEventListener('input', updateStatsAndHashes);
+
+        // Initial update
+        updateStatsAndHashes();
+    </script>
+</body>
+</html>
