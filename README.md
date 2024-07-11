@@ -3,7 +3,7 @@
 Hashmash is a simple web application that takes a string input and an optional salt string, then provides descriptive statistics about the input and calculates various hash values. The application updates the statistics and hashes in real-time as the input changes.
 
 ## Try it out here:
-[hashmasn](https://deftio.github.io/hashmash/index.html)
+[hashmash](https://deftio.github.io/hashmash/index.html)
 
 ## Features
 
