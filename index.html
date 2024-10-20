@@ -1,65 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- Hashmash by @deftio 
+    A simple tool to generate various hashes and checksums for a given string.
+    You can also add a salt and prefix to the string before hashing.
+
+    (c) 2024 Manu Chatterjee
+    www.github.com/deftio/hashmash
+
+    also see:
+    www.deftio.com 
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hashmash</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>#</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>#</text></svg>">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        textarea, .input-wrapper input {
+
+        textarea,
+        .input-wrapper input {
             padding: 10px;
             margin: 10px 0;
             box-sizing: border-box;
         }
+
         textarea {
             width: 70%;
         }
+
         .input-wrapper {
             display: flex;
             gap: 10px;
         }
+
         .input-wrapper input {
             width: 10%;
         }
+
         .prefix-input {
             width: 20%;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        table, th, td {
+
+        table,
+        th,
+        td {
             border: 1px solid #ddd;
         }
-        th, td {
+
+        th,
+        td {
             padding: 8px;
             text-align: left;
             word-break: break-all;
         }
+
         th {
             background-color: #f2f2f2;
         }
+
         .fixed-width {
             width: 20%;
         }
+
         .stats-table {
             margin-top: 20px;
             width: 100%;
             border: none;
             table-layout: fixed;
         }
+
         .stats-table td {
             padding: 5px;
             border: none;
         }
+
+        #exportJson {
+            padding: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
+
 <body>
     <h1>Hashmash</h1>
     <div class="input-wrapper">
@@ -67,6 +105,7 @@
         <input type="text" id="salt" placeholder="Optional salt...">
         <input type="text" id="prefix" class="prefix-input" value="Mi$0" placeholder="Prefix">
     </div>
+    <button id="exportJson">Export as JSON</button>
 
     <div id="stats"></div>
     <table id="hashesTable">
@@ -137,7 +176,7 @@
             }));
         };
         const displayStats = (stats) => {
-                statsDiv.innerHTML = `
+            statsDiv.innerHTML = `
                     <table class="stats-table">
                         <thead>
                             <tr>
@@ -165,7 +204,7 @@
                         </tbody>
                     </table>
                 `;
-            };
+        };
 
         const displayHashes = (hashes, prefixValue) => {
             hashesTableBody.innerHTML = hashes.map(hash => `
@@ -245,6 +284,44 @@
             return (crc ^ 0xFFFFFFFFFFFFFFFFn).toString(16);
         };
 
+        // Handle URL parameters to prepopulate input
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('input')) {
+            inputString.value = urlParams.get('input');
+            updateStatsAndHashes(); // Auto-update after setting value
+        }
+
+        // Export results as JSON
+        const exportButton = document.getElementById('exportJson');
+        exportButton.addEventListener('click', () => {
+            const str = inputString.value;
+            const saltedStr = str + (salt.value || '');
+            const prefixValue = prefix.value;
+
+            const stats = getStats(str);
+            const hashes = getHashes(saltedStr, prefixValue);
+
+            const data = {
+                inputString: inputString.value,
+                salt: salt.value,
+                prefix: prefix.value,
+                stats,
+                hashes,
+            };
+
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'hashmash_results.json';
+            link.click();
+
+            URL.revokeObjectURL(url); // Cleanup
+        });
+
+        // Listen for input changes
         inputString.addEventListener('input', updateStatsAndHashes);
         salt.addEventListener('input', updateStatsAndHashes);
         prefix.addEventListener('input', updateStatsAndHashes);
@@ -253,4 +330,5 @@
         updateStatsAndHashes();
     </script>
 </body>
+
 </html>

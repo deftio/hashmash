@@ -30,6 +30,8 @@ Hashmash is a simple web application that takes a string input and an optional s
 - Allows the user to add an optional salt to the input string.
 - Allows the user to specify a prefix for the hex hash values.
 - The application is responsive and adjusts to fit horizontally in the viewport.
+- Export as JSON
+- Takes input as URL parameter : ?input=yourtexthere
 
 ## Installation
 
